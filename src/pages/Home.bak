@@ -1,0 +1,37 @@
+import React from 'react'
+import { Box } from '@material-ui/core'
+import { styled } from '@material-ui/styles'
+import db from '../utils/db'
+// import { remote } from 'electron'
+// const { dialog } = remote
+
+// const CustomList = styled(List)({
+// 	paddingTop: 0,
+// 	paddingBottom: 0,
+// 	border: '1px solid #e0e0e0',
+// 	borderBottom: 0,
+// 	borderRadius: 4,
+// 	marginBottom: 4,
+// })
+
+function Home() {
+	return (
+		<Box display="flex" flexDirection="row" justifyContent="center" alignItems="center" minHeight="100vh">
+			<Box>안뇽</Box>
+		</Box>
+	)
+}
+
+export default Home
+
+
+https://cdn.dribbble.com/users/207046/screenshots/4315310/everdo_dribbble_v2.gif
+https://cdn.dribbble.com/users/322058/screenshots/6609532/01_everdo_files.png
+https://cdn.dribbble.com/users/207046/screenshots/4315310/attachments/983739/01_b_fullscreen.png
+https://cdn.dribbble.com/users/133608/screenshots/6098347/task-page2.png
+https://www.behance.net/gallery/71194695/TooDoo
+https://mspoweruser.com/wp-content/uploads/2018/09/microsoft-todo.png
+https://www.thurrott.com/wp-content/uploads/sites/2/2018/09/todo-web.jpg
+https://i3g4v6w8.stackpathcdn.com/wp-content/uploads/2019/07/add-subtasks-microsoft-todo.jpg
+https://perezzies.com/wp-content/uploads/2018/12/the-best-to-do-list-apps-for-task-management-duration.png
+https://miro.medium.com/max/1600/1*zaaX7n0g52MPEMQtvL0zCw.png
