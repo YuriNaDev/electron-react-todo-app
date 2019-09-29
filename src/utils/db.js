@@ -10,21 +10,42 @@ const db = low(adapter)
 
 db._.mixin(lodashId)
 
-const docs = db.defaults({ docs: [] }).get('docs')
+const todos = db.defaults({ todos: [] }).get('todos')
+const lists = db.defaults({ lists: [] }).get('lists')
 
 export default {
-	docs: {
-		list() {
-			return docs.cloneDeep().value()
+	lists: {
+		find(cond) {
+			if (!cond) {
+				return lists.cloneDeep().value()
+			}
+			return []
 		},
-		find(id) {
-			return docs.getById(id).value()
+		create(data) {
+			return lists.insert({ ...data }).write()
 		},
-		create(title) {
-			return docs.insert({ title }).write()
+	},
+	todos: {
+		find(cond) {
+			if (!cond) {
+				return todos.cloneDeep().value()
+			}
+			return []
 		},
-		delete(id) {
-			return docs.removeById(id).write()
+		findById(id) {
+			return todos.getById(id).value()
+		},
+		create(data) {
+			return todos.insert({ ...data }).write()
+		},
+		updateById(id, data) {
+			return todos
+				.getById(id)
+				.assign(data)
+				.write()
+		},
+		deleteById(id) {
+			return todos.removeById(id).write()
 		},
 	},
 }

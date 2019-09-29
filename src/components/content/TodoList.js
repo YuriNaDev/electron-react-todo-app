@@ -1,7 +1,8 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Box, List, ListItem, ListItemIcon, ListItemText, Checkbox, Typography, Chip } from '@material-ui/core'
-import { format } from 'date-fns'
+import { format, isToday } from 'date-fns'
+import db from 'utils/db'
 // import StarBorderIcon from '@material-ui/icons/StarBorder'
 
 const useStyles = makeStyles(theme => ({
@@ -18,7 +19,7 @@ const useStyles = makeStyles(theme => ({
 	},
 	itemTypo: {
 		flexGrow: 1,
-		color: props => (props.completed ? theme.palette.text.hint : theme.palette.text.primary),
+		color: props => (props.complete ? theme.palette.text.hint : theme.palette.text.primary),
 	},
 	itemChip: {
 		marginLeft: theme.spacing(1),
@@ -29,13 +30,13 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
-function TodoItem({ item }) {
-	const classes = useStyles({ completed: item.completed })
+const TodoItem = React.memo(({ item, toggleComplete }) => {
+	const classes = useStyles({ complete: item.complete })
 
 	return (
 		<ListItem button selected={!!item.selected} classes={{ root: classes.listItem, selected: classes.selectedItem }}>
 			<ListItemIcon classes={{ root: classes.listItemIcon }}>
-				<Checkbox checked={item.completed} color="primary" edge="start" />
+				<Checkbox checked={item.complete} color="primary" edge="start" onChange={() => toggleComplete(item.id)} />
 			</ListItemIcon>
 			<ListItemText
 				disableTypography
@@ -43,38 +44,42 @@ function TodoItem({ item }) {
 				primary={
 					<>
 						<Typography classes={{ root: classes.itemTypo }}>{item.content}</Typography>
-						{item.dueDate && <Chip label={format(item.dueDate, 'M월 d일')} size="small" classes={{ root: classes.itemChip }} />}
+						{item.dueDate && (
+							<Chip
+								label={format(item.dueDate, isToday(item.dueDate) ? 'HH:mm' : 'M월 d일')}
+								size="small"
+								classes={{ root: classes.itemChip }}
+							/>
+						)}
 					</>
 				}
 			/>
 		</ListItem>
 	)
-}
+})
 
 function TodoList() {
-	const [selected, setSelected] = React.useState(-1)
+	// const [selected, setSelected] = React.useState(-1)
+	const [todos, setTodos] = React.useState([])
 
-	const items = [
-		{ id: 0, content: '할일입니다', completed: false, list: 1, created: new Date(), updated: new Date(), dueDate: new Date() },
-		{
-			id: 1,
-			content:
-				'아주 긴 할 일입니다 아주 긴 할 일입니다 아주 긴 할 일입니다 아주 긴 할 일입니다 아주 긴 할 일입니다 아주 긴 할 일입니다 아주 긴 할 일입니다',
-			completed: false,
-			list: 1,
-			created: new Date(),
-			updated: new Date(),
-			dueDate: new Date(),
-		},
-		{ id: 2, content: '할일입니다', completed: false, list: 1, created: new Date(), updated: new Date(), dueDate: null },
-		{ id: 3, content: '할일입니다', completed: true, list: 1, created: new Date(), updated: new Date(), dueDate: null },
-	]
+	React.useEffect(() => {
+		const todos = db.todos.find()
+		setTodos(todos)
+	}, [])
+
+	const toggleComplete = React.useCallback(id => {
+		setTodos(state => {
+			const bool = state.find(todo => todo.id === id).complete
+			db.todos.updateById(id, { complete: !bool })
+			return state.map(todo => (todo.id === id ? { ...todo, complete: !bool } : todo))
+		})
+	}, [])
 
 	return (
 		<Box px={3} pb={3}>
 			<List disablePadding>
-				{items.map(item => (
-					<TodoItem key={`todo-${item.id}`} item={item} />
+				{todos.map(item => (
+					<TodoItem key={item.id} item={item} toggleComplete={toggleComplete} />
 				))}
 			</List>
 		</Box>

@@ -8,6 +8,8 @@ import AlarmIcon from '@material-ui/icons/Alarm'
 import DoneIcon from '@material-ui/icons/Done'
 import MenuIcon from '@material-ui/icons/Menu'
 import AddIcon from '@material-ui/icons/Add'
+import db from 'utils/db'
+import useGlobal from 'hooks/useGlobal'
 
 const drawerWidth = 260
 
@@ -42,35 +44,58 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
-function CustomListItem({ icon: CustomIcon, text, selected, button }) {
+const CustomListItem = React.memo(({ icon: CustomIcon, id, text, button }) => {
 	const classes = useStyles({ button })
+	const [selected, setSelected] = useGlobal(state => state.list, actions => actions.setList)
+
+	const handleClick = React.useCallback(() => {
+		if (id) {
+			setSelected(id)
+		}
+	}, [id, setSelected])
+
 	return (
-		<ListItem button classes={{ root: classes.listItem, selected: classes.selectedItem }} selected={selected}>
+		<ListItem button classes={{ root: classes.listItem, selected: classes.selectedItem }} selected={selected === id} onClick={handleClick}>
 			<ListItemIcon classes={{ root: classes.listItemIcon }}>
 				<CustomIcon fontSize="small" />
 			</ListItemIcon>
 			<ListItemText primary={text} classes={{ primary: classes.listItemText }} />
 		</ListItem>
 	)
+})
+
+function MyList() {
+	const [lists, setLists] = React.useState([])
+
+	React.useEffect(() => {
+		const lists = db.lists.find()
+		setLists(lists)
+	}, [])
+
+	return (
+		<List disablePadding>
+			{lists.map(list => (
+				<CustomListItem key={list.id} icon={MenuIcon} id={list.id} text={list.title} />
+			))}
+			<CustomListItem button icon={AddIcon} text="New List" />
+		</List>
+	)
 }
 
 function DrawerPanel() {
 	const classes = useStyles()
+
 	return (
 		<Drawer variant="permanent" anchor="left" classes={{ root: classes.drawerRoot, paper: classes.drawerPaper }}>
 			<Box height={32} />
 			<List disablePadding classes={{ root: classes.firstList }}>
-				<CustomListItem icon={InboxIcon} text="Inbox" selected />
-				<CustomListItem icon={TodayIcon} text="Today" />
-				<CustomListItem icon={StarBorderIcon} text="Important" />
-				<CustomListItem icon={AlarmIcon} text="Upcoming" />
-				<CustomListItem icon={DoneIcon} text="Completed" />
+				<CustomListItem icon={InboxIcon} text="Inbox" id="Inbox" />
+				<CustomListItem icon={TodayIcon} text="Today" id="Today" />
+				<CustomListItem icon={StarBorderIcon} text="Important" id="Important" />
+				<CustomListItem icon={AlarmIcon} text="Upcoming" id="Upcoming" />
+				<CustomListItem icon={DoneIcon} text="Completed" id="Completed" />
 			</List>
-			<List disablePadding>
-				<CustomListItem icon={MenuIcon} text="AFS" />
-				<CustomListItem icon={MenuIcon} text="AFSOUT" />
-				<CustomListItem button icon={AddIcon} text="New List" />
-			</List>
+			<MyList />
 		</Drawer>
 	)
 }
