@@ -16,8 +16,8 @@ const useStyles = makeStyles(theme => ({
 		width: 300,
 		paddingTop: theme.spacing(4),
 		paddingBottom: theme.spacing(4),
-		paddingLeft: theme.spacing(2),
-		paddingRight: theme.spacing(2),
+		paddingLeft: theme.spacing(3),
+		paddingRight: theme.spacing(3),
 	},
 }))
 
@@ -32,7 +32,7 @@ function FormPanel() {
 			</Fab>
 			<Drawer anchor="right" open={open} onClose={() => setOpen(false)} classes={{ paper: classes.drawer }}>
 				<Formik
-					initialValues={{ content: '', complete: false, list: '', created: null, updated: null, dueDate: null, important: false }}
+					initialValues={{ id: '', content: '', complete: false, list: '', dueDate: null, important: false }}
 					onSubmit={(values, { setSubmitting }) => {
 						setTimeout(() => {
 							console.log(JSON.stringify(values, null, 2))

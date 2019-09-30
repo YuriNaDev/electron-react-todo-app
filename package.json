@@ -18,8 +18,10 @@
 		"package": "electron-builder build -w -c.extraMetadata.main=build/electron/main.js"
 	},
 	"dependencies": {
+		"@date-io/date-fns": "^1.3.11",
 		"@material-ui/core": "^4.3.3",
 		"@material-ui/icons": "^4.4.3",
+		"@material-ui/pickers": "^3.2.6",
 		"@material-ui/styles": "^4.3.3",
 		"date-fns": "^2.4.1",
 		"electron-is-dev": "^1.1.0",
