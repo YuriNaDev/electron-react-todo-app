@@ -3,6 +3,7 @@ import FileSync from 'lowdb/adapters/FileSync'
 import path from 'path'
 import { remote } from 'electron'
 import lodashId from 'lodash-id'
+import { differenceInDays, parseISO } from 'date-fns'
 
 const dbPath = path.join(remote.app.getPath('userData'), 'lowdb.json')
 const adapter = new FileSync(dbPath)
@@ -26,11 +27,37 @@ export default {
 		},
 	},
 	todos: {
-		find(cond) {
-			if (!cond) {
-				return todos.cloneDeep().value()
+		find(listType) {
+			if (listType === 'Inbox') {
+				return todos
+					.cloneDeep()
+					.sortBy('updated')
+					.value()
+			} else if (listType === 'Today') {
+				return todos
+					.filter(x => x.dueDate && differenceInDays(parseISO(x.dueDate), new Date()) <= 0)
+					.sortBy('updated')
+					.value()
+			} else if (listType === 'Important') {
+				return todos
+					.filter(x => x.important)
+					.sortBy('updated')
+					.value()
+			} else if (listType === 'Upcoming') {
+				return todos
+					.filter(x => x.dueDate && differenceInDays(parseISO(x.dueDate), new Date()) <= 7)
+					.sortBy('updated')
+					.value()
+			} else if (listType === 'Completed') {
+				return todos
+					.filter(x => x.complete)
+					.sortBy('updated')
+					.value()
 			}
-			return []
+			return todos
+				.filter(x => x.list === listType)
+				.sortBy('updated')
+				.value()
 		},
 		findById(id) {
 			return todos.getById(id).value()

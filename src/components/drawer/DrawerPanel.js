@@ -9,7 +9,7 @@ import DoneIcon from '@material-ui/icons/Done'
 import MenuIcon from '@material-ui/icons/Menu'
 import AddIcon from '@material-ui/icons/Add'
 import db from 'utils/db'
-import useGlobal from 'hooks/useGlobal'
+import useStore from 'hooks/useStore'
 
 const drawerWidth = 260
 
@@ -44,58 +44,118 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
-const CustomListItem = React.memo(({ icon: CustomIcon, id, text, button }) => {
-	const classes = useStyles({ button })
-	const [selected, setSelected] = useGlobal(state => state.list, actions => actions.setList)
-
-	const handleClick = React.useCallback(() => {
-		if (id) {
-			setSelected(id)
-		}
-	}, [id, setSelected])
+const CustomListItem = React.memo(({ id, title, icon: CustomIcon, selected, handleClick }) => {
+	const classes = useStyles({ button: !id })
+	const ListIcon = CustomIcon || MenuIcon
 
 	return (
-		<ListItem button classes={{ root: classes.listItem, selected: classes.selectedItem }} selected={selected === id} onClick={handleClick}>
+		<ListItem
+			button
+			classes={{ root: classes.listItem, selected: classes.selectedItem }}
+			selected={selected}
+			onClick={() => handleClick(id, title)}
+		>
 			<ListItemIcon classes={{ root: classes.listItemIcon }}>
-				<CustomIcon fontSize="small" />
+				<ListIcon fontSize="small" />
 			</ListItemIcon>
-			<ListItemText primary={text} classes={{ primary: classes.listItemText }} />
+			<ListItemText primary={title} classes={{ primary: classes.listItemText }} />
 		</ListItem>
 	)
 })
 
-function MyList() {
-	const [lists, setLists] = React.useState([])
+function DrawerPanel() {
+	const classes = useStyles()
+
+	const {
+		list: [selected, setSelected],
+		lists: [personalList, setPersonalList],
+	} = useStore()
+	const [list, setList] = React.useState([
+		{
+			id: 'Inbox',
+			title: 'Inbox',
+			icon: InboxIcon,
+			selected: true,
+		},
+		{
+			id: 'Today',
+			title: 'Today',
+			icon: TodayIcon,
+			selected: false,
+		},
+		{
+			id: 'Important',
+			title: 'Important',
+			icon: StarBorderIcon,
+			selected: false,
+		},
+		{
+			id: 'Upcoming',
+			title: 'Upcoming',
+			icon: AlarmIcon,
+			selected: false,
+		},
+		{
+			id: 'Completed',
+			title: 'Completed',
+			icon: DoneIcon,
+			selected: false,
+		},
+	])
+
+	const handleClick = React.useCallback(
+		(id, title) => {
+			setSelected({ id, title })
+		},
+		[setSelected]
+	)
+
+	const addList = React.useCallback(() => {
+		console.log('ADD!!')
+	}, [])
+
+	React.useEffect(() => {
+		setList(list => {
+			return list.map(item => {
+				if (item.id === selected.id) {
+					return item.selected ? item : { ...item, selected: true }
+				} else {
+					return item.selected ? { ...item, selected: false } : item
+				}
+			})
+		})
+		setPersonalList(list => {
+			return list.map(item => {
+				if (item.id === selected.id) {
+					return item.selected ? item : { ...item, selected: true }
+				} else {
+					return item.selected ? { ...item, selected: false } : item
+				}
+			})
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selected.id])
 
 	React.useEffect(() => {
 		const lists = db.lists.find()
-		setLists(lists)
+		setPersonalList(lists.map(item => ({ ...item, selected: false })))
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	return (
-		<List disablePadding>
-			{lists.map(list => (
-				<CustomListItem key={list.id} icon={MenuIcon} id={list.id} text={list.title} />
-			))}
-			<CustomListItem button icon={AddIcon} text="New List" />
-		</List>
-	)
-}
-
-function DrawerPanel() {
-	const classes = useStyles()
 
 	return (
 		<Drawer variant="permanent" anchor="left" classes={{ root: classes.drawerRoot, paper: classes.drawerPaper }}>
 			<Box height={32} />
 			<List disablePadding classes={{ root: classes.firstList }}>
-				<CustomListItem icon={InboxIcon} text="Inbox" id="Inbox" />
-				<CustomListItem icon={TodayIcon} text="Today" id="Today" />
-				<CustomListItem icon={StarBorderIcon} text="Important" id="Important" />
-				<CustomListItem icon={AlarmIcon} text="Upcoming" id="Upcoming" />
-				<CustomListItem icon={DoneIcon} text="Completed" id="Completed" />
+				{list.map(item => (
+					<CustomListItem key={item.id} {...item} handleClick={handleClick} />
+				))}
 			</List>
-			<MyList />
+			<List disablePadding>
+				{personalList.map(item => (
+					<CustomListItem key={item.id} {...item} handleClick={handleClick} />
+				))}
+				<CustomListItem icon={AddIcon} title="New List" handleClick={addList} />
+			</List>
 		</Drawer>
 	)
 }

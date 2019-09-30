@@ -1,9 +1,9 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Box, List, ListItem, ListItemIcon, ListItemText, Checkbox, Typography, Chip } from '@material-ui/core'
-import { format, isToday } from 'date-fns'
+import { format, isToday, parseISO } from 'date-fns'
 import db from 'utils/db'
-// import StarBorderIcon from '@material-ui/icons/StarBorder'
+import useStore from 'hooks/useStore'
 
 const useStyles = makeStyles(theme => ({
 	listItem: {
@@ -46,7 +46,7 @@ const TodoItem = React.memo(({ item, toggleComplete }) => {
 						<Typography classes={{ root: classes.itemTypo }}>{item.content}</Typography>
 						{item.dueDate && (
 							<Chip
-								label={format(item.dueDate, isToday(item.dueDate) ? 'HH:mm' : 'M월 d일')}
+								label={format(parseISO(item.dueDate), isToday(parseISO(item.dueDate)) ? 'HH:mm' : 'M월 d일')}
 								size="small"
 								classes={{ root: classes.itemChip }}
 							/>
@@ -59,13 +59,16 @@ const TodoItem = React.memo(({ item, toggleComplete }) => {
 })
 
 function TodoList() {
-	// const [selected, setSelected] = React.useState(-1)
-	const [todos, setTodos] = React.useState([])
+	const {
+		list: [list],
+		todos: [todos, setTodos],
+	} = useStore()
 
 	React.useEffect(() => {
-		const todos = db.todos.find()
+		let todos = db.todos.find(list.id)
 		setTodos(todos)
-	}, [])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [list.id])
 
 	const toggleComplete = React.useCallback(id => {
 		setTodos(state => {
@@ -73,6 +76,7 @@ function TodoList() {
 			db.todos.updateById(id, { complete: !bool })
 			return state.map(todo => (todo.id === id ? { ...todo, complete: !bool } : todo))
 		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return (
