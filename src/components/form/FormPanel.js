@@ -4,6 +4,7 @@ import { Drawer, Fab } from '@material-ui/core'
 import AddIcon from '@material-ui/icons/Add'
 import { Formik } from 'formik'
 import TodoForm from './TodoForm'
+import useStore from 'hooks/useStore'
 
 const useStyles = makeStyles(theme => ({
 	fab: {
@@ -21,26 +22,44 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
+const initialValues = { id: '', content: '', complete: false, list: '', dueDate: null, important: false }
+
 function FormPanel() {
 	const classes = useStyles()
-	const [open, setOpen] = React.useState(true)
+	const {
+		todo: [todo, setTodo],
+	} = useStore()
+	const [open, setOpen] = React.useState(false)
+
+	React.useEffect(() => {
+		if (todo) {
+			setOpen(true)
+		}
+	}, [todo])
+
+	const handleOpen = React.useCallback(() => {
+		setOpen(true)
+	}, [])
+
+	const handleClose = React.useCallback(() => {
+		setOpen(false)
+		setTodo(null)
+	}, [setTodo])
+
+	const handleSubmit = React.useCallback((values, { setSubmitting }) => {
+		setTimeout(() => {
+			console.log(JSON.stringify(values, null, 2))
+			setSubmitting(false)
+		}, 1000)
+	}, [])
 
 	return (
 		<>
-			<Fab color="primary" size="medium" onClick={() => setOpen(true)} classes={{ root: classes.fab }}>
+			<Fab color="primary" size="medium" onClick={handleOpen} classes={{ root: classes.fab }}>
 				<AddIcon />
 			</Fab>
-			<Drawer anchor="right" open={open} onClose={() => setOpen(false)} classes={{ paper: classes.drawer }}>
-				<Formik
-					initialValues={{ id: '', content: '', complete: false, list: '', dueDate: null, important: false }}
-					onSubmit={(values, { setSubmitting }) => {
-						setTimeout(() => {
-							console.log(JSON.stringify(values, null, 2))
-							setSubmitting(false)
-						}, 1000)
-					}}
-					render={props => <TodoForm {...props} />}
-				/>
+			<Drawer anchor="right" open={open} onClose={handleClose} classes={{ paper: classes.drawer }}>
+				<Formik initialValues={todo || initialValues} enableReinitialize onSubmit={handleSubmit} render={props => <TodoForm {...props} />} />
 			</Drawer>
 		</>
 	)

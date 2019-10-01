@@ -30,13 +30,26 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
-const TodoItem = React.memo(({ item, toggleComplete }) => {
+const TodoItem = React.memo(({ item, toggleComplete, openEditPanel }) => {
 	const classes = useStyles({ complete: item.complete })
 
+	const handleCheckboxClick = React.useCallback(
+		(e, id) => {
+			e.stopPropagation()
+			toggleComplete(id)
+		},
+		[toggleComplete]
+	)
+
 	return (
-		<ListItem button selected={!!item.selected} classes={{ root: classes.listItem, selected: classes.selectedItem }}>
+		<ListItem
+			button
+			selected={!!item.selected}
+			classes={{ root: classes.listItem, selected: classes.selectedItem }}
+			onClick={() => openEditPanel(item)}
+		>
 			<ListItemIcon classes={{ root: classes.listItemIcon }}>
-				<Checkbox checked={item.complete} color="primary" edge="start" onChange={() => toggleComplete(item.id)} />
+				<Checkbox checked={item.complete} color="primary" edge="start" onClick={e => handleCheckboxClick(e, item.id)} />
 			</ListItemIcon>
 			<ListItemText
 				disableTypography
@@ -62,6 +75,7 @@ function TodoList() {
 	const {
 		list: [list],
 		todos: [todos, setTodos],
+		todo: [, setTodo],
 	} = useStore()
 
 	React.useEffect(() => {
@@ -79,11 +93,16 @@ function TodoList() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const openEditPanel = React.useCallback(id => {
+		setTodo(id)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	return (
 		<Box px={3} pb={3}>
 			<List disablePadding>
 				{todos.map(item => (
-					<TodoItem key={item.id} item={item} toggleComplete={toggleComplete} />
+					<TodoItem key={item.id} item={item} toggleComplete={toggleComplete} openEditPanel={openEditPanel} />
 				))}
 			</List>
 		</Box>

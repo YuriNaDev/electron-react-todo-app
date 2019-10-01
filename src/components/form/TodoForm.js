@@ -1,4 +1,5 @@
 import React from 'react'
+import { makeStyles } from '@material-ui/core/styles'
 import { Field, Form } from 'formik'
 import { TextField } from 'formik-material-ui'
 import { MenuItem, Button, Grid, IconButton, Tooltip } from '@material-ui/core'
@@ -7,7 +8,16 @@ import StarBorderIcon from '@material-ui/icons/StarBorder'
 import StarIcon from '@material-ui/icons/Star'
 import useStore from 'hooks/useStore'
 
+const useStyles = makeStyles(theme => ({
+	button: {
+		marginTop: theme.spacing(1),
+		marginBottom: theme.spacing(1),
+	},
+}))
+
 function TodoForm({ handleSubmit, handleChange, handleBlur, values, errors, setFieldValue, ...rest }) {
+	const classes = useStyles()
+
 	const {
 		lists: [lists],
 	} = useStore()
@@ -54,13 +64,25 @@ function TodoForm({ handleSubmit, handleChange, handleBlur, values, errors, setF
 					variant={values.complete ? 'contained' : 'outlined'}
 					fullWidth
 					onClick={() => setFieldValue('complete', !values.complete)}
+					classes={{ root: classes.button }}
 				>
-					완료
+					{values.complete ? '완료' : '미완료'}
 				</Button>
 			)}
-			<Button type="submit" color="primary" variant="contained" fullWidth>
-				등록
+			<Button type="submit" color="primary" variant="contained" fullWidth classes={{ root: classes.button }}>
+				{values.id ? '수정' : '등록'}
 			</Button>
+			{values.id && (
+				<Button
+					color="secondary"
+					variant="contained"
+					fullWidth
+					// onClick={() => setFieldValue('complete', !values.complete)}
+					classes={{ root: classes.button }}
+				>
+					삭제
+				</Button>
+			)}
 		</Form>
 	)
 }
