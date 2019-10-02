@@ -15,7 +15,7 @@ const useStyles = makeStyles(theme => ({
 	},
 }))
 
-function TodoForm({ handleSubmit, handleChange, handleBlur, values, errors, setFieldValue, ...rest }) {
+function TodoForm({ handleSubmit, handleDelete, values, setFieldValue }) {
 	const classes = useStyles()
 
 	const {
@@ -73,13 +73,7 @@ function TodoForm({ handleSubmit, handleChange, handleBlur, values, errors, setF
 				{values.id ? '수정' : '등록'}
 			</Button>
 			{values.id && (
-				<Button
-					color="secondary"
-					variant="contained"
-					fullWidth
-					// onClick={() => setFieldValue('complete', !values.complete)}
-					classes={{ root: classes.button }}
-				>
+				<Button color="secondary" variant="contained" fullWidth onClick={() => handleDelete(values.id)} classes={{ root: classes.button }}>
 					삭제
 				</Button>
 			)}

@@ -2,6 +2,7 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Box, List, ListItem, ListItemIcon, ListItemText, Checkbox, Typography, Chip } from '@material-ui/core'
 import { format, isToday, parseISO } from 'date-fns'
+import koLocale from 'date-fns/locale/ko'
 import db from 'utils/db'
 import useStore from 'hooks/useStore'
 
@@ -41,8 +42,6 @@ const TodoItem = React.memo(({ item, toggleComplete, openEditPanel }) => {
 		[toggleComplete]
 	)
 
-	// console.log(item.dueDate)
-
 	return (
 		<ListItem
 			button
@@ -61,7 +60,7 @@ const TodoItem = React.memo(({ item, toggleComplete, openEditPanel }) => {
 						<Typography classes={{ root: classes.itemTypo }}>{item.content}</Typography>
 						{item.dueDate && (
 							<Chip
-								label={format(parseISO(item.dueDate), isToday(parseISO(item.dueDate)) ? 'HH:mm' : 'M월 d일')}
+								label={format(parseISO(item.dueDate), isToday(parseISO(item.dueDate)) ? 'a hh:mm' : 'M월 d일', { locale: koLocale })}
 								size="small"
 								classes={{ root: classes.itemChip }}
 							/>

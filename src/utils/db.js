@@ -11,8 +11,17 @@ const db = low(adapter)
 
 db._.mixin(lodashId)
 
-const todos = db.defaults({ todos: [] }).get('todos')
-const lists = db.defaults({ lists: [] }).get('lists')
+db.defaults({
+	todos: [],
+	lists: [],
+}).write()
+
+const todos = db.get('todos')
+const lists = db.get('lists')
+
+if (lists.value().length === 0) {
+	lists.insert({ title: 'default' }).write()
+}
 
 export default {
 	lists: {
@@ -24,6 +33,15 @@ export default {
 		},
 		create(data) {
 			return lists.insert({ ...data }).write()
+		},
+		updateById(id, data) {
+			return lists
+				.getById(id)
+				.assign(data)
+				.write()
+		},
+		deleteById(id) {
+			return lists.removeById(id).write()
 		},
 	},
 	todos: {
@@ -73,6 +91,9 @@ export default {
 		},
 		deleteById(id) {
 			return todos.removeById(id).write()
+		},
+		deleteByList(list) {
+			return todos.removeWhere({ list }).write()
 		},
 	},
 }

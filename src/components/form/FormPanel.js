@@ -6,7 +6,7 @@ import { Formik } from 'formik'
 import TodoForm from './TodoForm'
 import useStore from 'hooks/useStore'
 import db from 'utils/db'
-import { differenceInDays, parseISO } from 'date-fns'
+import { differenceInDays, parseISO, isDate } from 'date-fns'
 
 const useStyles = makeStyles(theme => ({
 	fab: {
@@ -51,10 +51,14 @@ function FormPanel() {
 	}, [setTodo])
 
 	const handleSubmit = React.useCallback(
-		(values, { setSubmitting, resetForm }) => {
-			const { id, ...data } = values
+		(values, { setSubmitting }) => {
+			const { id, dueDate, ...data } = values
 			if (id) {
-				const result = db.todos.updateById(id, { ...data, updated: new Date() })
+				const result = db.todos.updateById(id, {
+					...data,
+					dueDate: dueDate ? (isDate(dueDate) ? dueDate.toISOString() : dueDate) : null,
+					updated: new Date().toISOString(),
+				})
 				if (
 					list.id === result.list ||
 					list.id === 'Inbox' ||
@@ -64,22 +68,20 @@ function FormPanel() {
 				) {
 					// 1. 수정했으므로 순서를 최상단으로
 					setTodos(state => {
-						const { created, updated, dueDate, ...rest } = result
-						const newTodo = {
-							...rest,
-							created: typeof created === 'string' ? created : created.toISOString(),
-							updated: typeof updated === 'string' ? updated : updated.toISOString(),
-							dueDate: typeof dueDate === 'string' ? dueDate : dueDate.toISOString(),
-						}
 						const filtered = state.filter(todo => todo.id !== id)
-						return [newTodo, ...filtered]
+						return [{ ...result }, ...filtered]
 					})
 				} else {
 					// 2. 변경범위에 따라 리스트에서 삭제
 					setTodos(state => state.filter(todo => todo.id !== id))
 				}
 			} else {
-				const result = db.todos.create({ ...data, created: new Date(), updated: new Date() })
+				const result = db.todos.create({
+					...data,
+					dueDate: dueDate ? dueDate.toISOString() : null,
+					created: new Date().toISOString(),
+					updated: new Date().toISOString(),
+				})
 				if (
 					list.id === result.list ||
 					list.id === 'Inbox' ||
@@ -87,21 +89,24 @@ function FormPanel() {
 					(list.id === 'Important' && result.important) ||
 					(list.id === 'Upcoming' && result.dueDate && differenceInDays(parseISO(result.dueDate), new Date()) <= 7)
 				) {
-					const { created, updated, dueDate, ...rest } = result
-					const newTodo = {
-						...rest,
-						created: typeof created === 'string' ? created : created.toISOString(),
-						updated: typeof updated === 'string' ? updated : updated.toISOString(),
-						dueDate: typeof dueDate === 'string' ? dueDate : dueDate.toISOString(),
-					}
-					setTodos(state => [newTodo, ...state])
+					setTodos(state => [{ ...result }, ...state])
 				}
 			}
 			setSubmitting(false)
-			resetForm(initialValues)
 			handleClose()
 		},
 		[handleClose, list.id, setTodos]
+	)
+
+	const handleDelete = React.useCallback(
+		id => {
+			if (id) {
+				db.todos.deleteById(id)
+				setTodos(state => state.filter(todo => todo.id !== id))
+				handleClose()
+			}
+		},
+		[handleClose, setTodos]
 	)
 
 	return (
@@ -110,7 +115,12 @@ function FormPanel() {
 				<AddIcon />
 			</Fab>
 			<Drawer anchor="right" open={open} onClose={handleClose} classes={{ paper: classes.drawer }}>
-				<Formik initialValues={todo || initialValues} enableReinitialize onSubmit={handleSubmit} render={props => <TodoForm {...props} />} />
+				<Formik
+					initialValues={todo || initialValues}
+					enableReinitialize
+					onSubmit={handleSubmit}
+					render={props => <TodoForm {...props} handleDelete={handleDelete} />}
+				/>
 			</Drawer>
 		</>
 	)

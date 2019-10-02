@@ -1,15 +1,15 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
+import { Box, Drawer, List } from '@material-ui/core'
 import InboxIcon from '@material-ui/icons/Inbox'
 import StarBorderIcon from '@material-ui/icons/StarBorder'
 import TodayIcon from '@material-ui/icons/Today'
 import AlarmIcon from '@material-ui/icons/Alarm'
 import DoneIcon from '@material-ui/icons/Done'
-import MenuIcon from '@material-ui/icons/Menu'
-import AddIcon from '@material-ui/icons/Add'
 import db from 'utils/db'
 import useStore from 'hooks/useStore'
+import DrawerListItem from './DrawerListItem'
+import AddNewList from './AddNewList'
 
 const drawerWidth = 260
 
@@ -25,43 +25,7 @@ const useStyles = makeStyles(theme => ({
 	firstList: {
 		marginBottom: theme.spacing(3),
 	},
-	listItem: {
-		paddingLeft: theme.spacing(3),
-		paddingRight: theme.spacing(3),
-		color: props => (props.button ? theme.palette.primary.main : theme.palette.text.primary),
-	},
-	listItemIcon: {
-		minWidth: 35,
-		color: 'inherit',
-	},
-	listItemText: {
-		fontSize: theme.typography.fontSize,
-	},
-	selectedItem: {
-		color: `${theme.palette.primary.main} !important`,
-		backgroundColor: 'transparent !important',
-		pointerEvents: 'none',
-	},
 }))
-
-const CustomListItem = React.memo(({ id, title, icon: CustomIcon, selected, handleClick }) => {
-	const classes = useStyles({ button: !id })
-	const ListIcon = CustomIcon || MenuIcon
-
-	return (
-		<ListItem
-			button
-			classes={{ root: classes.listItem, selected: classes.selectedItem }}
-			selected={selected}
-			onClick={() => handleClick(id, title)}
-		>
-			<ListItemIcon classes={{ root: classes.listItemIcon }}>
-				<ListIcon fontSize="small" />
-			</ListItemIcon>
-			<ListItemText primary={title} classes={{ primary: classes.listItemText }} />
-		</ListItem>
-	)
-})
 
 function DrawerPanel() {
 	const classes = useStyles()
@@ -110,10 +74,6 @@ function DrawerPanel() {
 		[setSelected]
 	)
 
-	const addList = React.useCallback(() => {
-		console.log('ADD!!')
-	}, [])
-
 	React.useEffect(() => {
 		setList(list => {
 			return list.map(item => {
@@ -147,14 +107,14 @@ function DrawerPanel() {
 			<Box height={32} />
 			<List disablePadding classes={{ root: classes.firstList }}>
 				{list.map(item => (
-					<CustomListItem key={item.id} {...item} handleClick={handleClick} />
+					<DrawerListItem key={item.id} {...item} handleClick={handleClick} />
 				))}
 			</List>
 			<List disablePadding>
 				{personalList.map(item => (
-					<CustomListItem key={item.id} {...item} handleClick={handleClick} />
+					<DrawerListItem key={item.id} {...item} handleClick={handleClick} />
 				))}
-				<CustomListItem icon={AddIcon} title="New List" handleClick={addList} />
+				<AddNewList />
 			</List>
 		</Drawer>
 	)
