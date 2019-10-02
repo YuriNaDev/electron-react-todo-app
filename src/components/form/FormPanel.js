@@ -5,6 +5,8 @@ import AddIcon from '@material-ui/icons/Add'
 import { Formik } from 'formik'
 import TodoForm from './TodoForm'
 import useStore from 'hooks/useStore'
+import db from 'utils/db'
+import { differenceInDays, parseISO } from 'date-fns'
 
 const useStyles = makeStyles(theme => ({
 	fab: {
@@ -27,7 +29,9 @@ const initialValues = { id: '', content: '', complete: false, list: '', dueDate:
 function FormPanel() {
 	const classes = useStyles()
 	const {
+		list: [list],
 		todo: [todo, setTodo],
+		todos: [, setTodos],
 	} = useStore()
 	const [open, setOpen] = React.useState(false)
 
@@ -46,12 +50,59 @@ function FormPanel() {
 		setTodo(null)
 	}, [setTodo])
 
-	const handleSubmit = React.useCallback((values, { setSubmitting }) => {
-		setTimeout(() => {
-			console.log(JSON.stringify(values, null, 2))
+	const handleSubmit = React.useCallback(
+		(values, { setSubmitting, resetForm }) => {
+			const { id, ...data } = values
+			if (id) {
+				const result = db.todos.updateById(id, { ...data, updated: new Date() })
+				if (
+					list.id === result.list ||
+					list.id === 'Inbox' ||
+					(list.id === 'Today' && result.dueDate && differenceInDays(parseISO(result.dueDate), new Date()) <= 0) ||
+					(list.id === 'Important' && result.important) ||
+					(list.id === 'Upcoming' && result.dueDate && differenceInDays(parseISO(result.dueDate), new Date()) <= 7)
+				) {
+					// 1. 수정했으므로 순서를 최상단으로
+					setTodos(state => {
+						const { created, updated, dueDate, ...rest } = result
+						const newTodo = {
+							...rest,
+							created: typeof created === 'string' ? created : created.toISOString(),
+							updated: typeof updated === 'string' ? updated : updated.toISOString(),
+							dueDate: typeof dueDate === 'string' ? dueDate : dueDate.toISOString(),
+						}
+						const filtered = state.filter(todo => todo.id !== id)
+						return [newTodo, ...filtered]
+					})
+				} else {
+					// 2. 변경범위에 따라 리스트에서 삭제
+					setTodos(state => state.filter(todo => todo.id !== id))
+				}
+			} else {
+				const result = db.todos.create({ ...data, created: new Date(), updated: new Date() })
+				if (
+					list.id === result.list ||
+					list.id === 'Inbox' ||
+					(list.id === 'Today' && result.dueDate && differenceInDays(parseISO(result.dueDate), new Date()) <= 0) ||
+					(list.id === 'Important' && result.important) ||
+					(list.id === 'Upcoming' && result.dueDate && differenceInDays(parseISO(result.dueDate), new Date()) <= 7)
+				) {
+					const { created, updated, dueDate, ...rest } = result
+					const newTodo = {
+						...rest,
+						created: typeof created === 'string' ? created : created.toISOString(),
+						updated: typeof updated === 'string' ? updated : updated.toISOString(),
+						dueDate: typeof dueDate === 'string' ? dueDate : dueDate.toISOString(),
+					}
+					setTodos(state => [newTodo, ...state])
+				}
+			}
 			setSubmitting(false)
-		}, 1000)
-	}, [])
+			resetForm(initialValues)
+			handleClose()
+		},
+		[handleClose, list.id, setTodos]
+	)
 
 	return (
 		<>

@@ -41,6 +41,8 @@ const TodoItem = React.memo(({ item, toggleComplete, openEditPanel }) => {
 		[toggleComplete]
 	)
 
+	// console.log(item.dueDate)
+
 	return (
 		<ListItem
 			button

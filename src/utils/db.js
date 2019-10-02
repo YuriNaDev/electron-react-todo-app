@@ -31,32 +31,32 @@ export default {
 			if (listType === 'Inbox') {
 				return todos
 					.cloneDeep()
-					.sortBy('updated')
+					.orderBy('updated', 'desc')
 					.value()
 			} else if (listType === 'Today') {
 				return todos
 					.filter(x => x.dueDate && differenceInDays(parseISO(x.dueDate), new Date()) <= 0)
-					.sortBy('updated')
+					.orderBy('updated', 'desc')
 					.value()
 			} else if (listType === 'Important') {
 				return todos
 					.filter(x => x.important)
-					.sortBy('updated')
+					.orderBy('updated', 'desc')
 					.value()
 			} else if (listType === 'Upcoming') {
 				return todos
 					.filter(x => x.dueDate && differenceInDays(parseISO(x.dueDate), new Date()) <= 7)
-					.sortBy('updated')
+					.orderBy('updated', 'desc')
 					.value()
 			} else if (listType === 'Completed') {
 				return todos
 					.filter(x => x.complete)
-					.sortBy('updated')
+					.orderBy('updated', 'desc')
 					.value()
 			}
 			return todos
 				.filter(x => x.list === listType)
-				.sortBy('updated')
+				.orderBy('updated', 'desc')
 				.value()
 		},
 		findById(id) {
